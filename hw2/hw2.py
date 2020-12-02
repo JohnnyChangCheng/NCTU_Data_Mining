@@ -53,12 +53,12 @@ class HW2():
     def __del__(self):
         self.fptr.close()
 
-    def parse(self):
+    def parser(self):
         #Process raw data
         while True:
             buf = self.fptr.readline()
             if not buf:
-                return
+                break
             if re.search(self.productId_attr, buf):
                 userId = ''
                 buf = buf.strip(self.productId_attr)
@@ -70,7 +70,7 @@ class HW2():
                     buf = self.fptr.readline()
                     if not buf:
                         warnings.warn('file eof unexpected', RuntimeWarning)
-                        return
+                        break
                     if re.search(self.userId_attr, buf):
                         buf = buf.strip(self.userId_attr)
                         buf = buf.strip(" ")
@@ -86,6 +86,7 @@ class HW2():
                     product_list = set()
                     product_list.add(productId)
                     self.user_product[userId] = product_list
+        print(self.productId_set)
         self.userId_list = sorted(self.userId_set)
         self.productId_list = sorted(self.productId_set)
         print("Parse original file finished")
@@ -102,7 +103,7 @@ class HW2():
                 column.append(self.productId_list.index(product))
                 value.append(1)
             user_index += 1
-        self.sparse_matrix = sparse.csc_matrix((value, (index, column)))
+        self.sparse_matrix = sparse.csc_matrix((value, (index, column)),shape=(len(self.userId_list),len(self.productId_list)))
         print("Sparse matrix constructed finished")
 
     def process_kmeasn_euclidean(self, clusters):
@@ -185,7 +186,7 @@ class HW2():
         print("DBSCAN overall distance:")
         print(overall_distance)
 
-        return dbscan.labels_[i]
+        return dbscan.labels_
 
 
 class Kmeans_Jaccard():
@@ -193,7 +194,7 @@ class Kmeans_Jaccard():
         self.dimension = dimension
         self.cluster_num = cluster_num
         self.cluster_centroids = numpy.random.rand(cluster_num, dimension)
-        self.cluster_centroids = self.cluster_centroids.astype(uint8)
+        self.cluster_centroids = self.cluster_centroids.astype('uint8')
         self.label = {}
 
     def dis(self, x, y):
@@ -213,12 +214,12 @@ class Kmeans_Jaccard():
             for j in range(0, col):
                 if sparse_matrix[i, j] == 1:
                     array_row[j] = 1
-            for key in self.cluster_centroids:
-                jaccard = self.dis(self.cluster_centroids[key], array_row)
+            for k in range(0,len(self.cluster_centroids)):
+                jaccard = self.dis(self.cluster_centroids[k], array_row)
                 if jaccard < ja_distance:
                     ja_distance = jaccard
-                    nearest_cluster = key
-            label_[index] = nearest_cluster
+                    nearest_cluster = k
+            label_[i] = nearest_cluster
             array_row = numpy.zeros(col)
 
         #Check each user's goup has been changed or not
@@ -240,12 +241,12 @@ class Kmeans_Jaccard():
                 clusetr_amount[self.label[i]] = 1
 
             for j in range(0, col):
-                if self.sparse_matrix[i, j] == 1:
+                if sparse_matrix[i, j] == 1:
                     if self.label[i] in cluster:
-                        cluster[self.label][j] += 1
+                        cluster[self.label[i]][j] += 1
                     else:
-                        cluster[dbscan.labels_[i]] = numpy.zeros(col)
-                        cluster[dbscan.labels_[i]][j] = 1
+                        cluster[self.label[i]] = numpy.zeros(col)
+                        cluster[self.label[i]][j] = 1
 
         for key in cluster:
             cluster[key] = cluster[key] / clusetr_amount[key]
@@ -259,7 +260,7 @@ class Kmeans_Jaccard():
         centroid = {}
         for i in range(0, row):
             for j in range(0, col):
-                if self.sparse_matrix[i, j] == 1:
+                if sparse_matrix[i, j] == 1:
                     array_row[j] = 1
             eu_dist = distance.euclidean(array_row, cluster[self.label[i]])
             if eu_dist < minumum_distance[self.label[i]]:
@@ -268,11 +269,11 @@ class Kmeans_Jaccard():
             array_row = numpy.zeros(col)
 
         #Construct centroid matrix
-        self.cluster_centroids = numpy.random.rand(cluster_num, dimension)
-        self.cluster_centroids = self.cluster_centroids.astype(uint8)
+        self.cluster_centroids = numpy.random.rand(self.cluster_num, self.dimension)
+        self.cluster_centroids = self.cluster_centroids.astype('uint8')
         for key in centroid:
             for j in range(0, col):
-                self.cluster_centroids[key,j] = self.sparse_matrix[centroid[key], j]
+                self.cluster_centroids[key,j] = sparse_matrix[centroid[key], j]
 
         
     def process_kmeans(self, sparse_matrix):
@@ -295,7 +296,7 @@ class Kmeans_Jaccard():
             for j in range(0, col):
                 if sparse_matrix[i, j] == 1:
                     array_row[j] = 1
-            ja_distance = jaccard_score(self.cluster_centroids[self.label[i]],
+            ja_distance = jaccard_score(numpy.array(self.cluster_centroids[self.label[i]]),
                                             array_row)
             overall_distance = overall_distance + ja_distance
             array_row = numpy.zeros(col)
@@ -311,8 +312,8 @@ if __name__ == "__main__":
     numpy.set_printoptions(threshold=sys.maxsize)
     
     #Initialize
-    hw = HW2("test.txt")
-    hw.parse()
+    hw = HW2("Music.txt")
+    hw.parser()
     hw.process_each_userId()
     
     #Init TSNE 
@@ -325,6 +326,8 @@ if __name__ == "__main__":
 
     #Kmeans 10
     label = hw.process_kmeasn_euclidean(10)
+
+    color = 0
     for i in range(X_norm.shape[0]):
         if label[i] > 21:
             color = label[i] % 21
@@ -340,7 +343,7 @@ if __name__ == "__main__":
     #DBSCAN
     label = hw.process_dbscan_jaccard()
     for i in range(X_norm.shape[0]):
-        if label[i] > 21:
+        if label[i] > 20:
             color = label[i] % 21
         else:
             color = label[i]
@@ -352,11 +355,11 @@ if __name__ == "__main__":
     plt.clf()
 
     #Kmeans Jaccard
-    _, col =  hw.return_mat().getshape()
+    _, col =  hw.return_mat().get_shape()
     kmeans_jaccard = Kmeans_Jaccard(10, col)
     label = kmeans_jaccard.process_kmeans(hw.return_mat())
     for i in range(X_norm.shape[0]):
-        if label[i] > 21:
+        if label[i] > 20:
             color = label[i] % 21
         else:
             color = label[i]
@@ -370,7 +373,7 @@ if __name__ == "__main__":
     #Kmeans 5
     label = hw.process_kmeasn_euclidean(5)
     for i in range(X_norm.shape[0]):
-        if label[i] > 21:
+        if label[i] > 20:
             color = label[i] % 21
         else:
             color = label[i]
@@ -384,7 +387,7 @@ if __name__ == "__main__":
     #Kmeans 20
     label = hw.process_kmeasn_euclidean(20)
     for i in range(X_norm.shape[0]):
-        if label[i] > 21:
+        if label[i] > 20:
             color = label[i] % 21
         else:
             color = label[i]
