@@ -314,7 +314,7 @@ if __name__ == "__main__":
     numpy.set_printoptions(threshold=sys.maxsize)
     
     #Initialize
-    hw = HW2("Music.txt")
+    hw = HW2("all.txt")
     hw.parser()
     hw.process_each_userId()
     
