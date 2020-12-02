@@ -47,6 +47,8 @@ class HW2():
         self.userId_set = set()
         self.productId_set = set()
         self.median = 0
+        self.userId_list = []
+        self.productId_list =[]
 
     def __del__(self):
         self.fptr.close()
