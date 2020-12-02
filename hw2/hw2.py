@@ -190,11 +190,15 @@ class HW2():
 
 
 class Kmeans_Jaccard():
-    def __init__(self, cluster_num, dimension):
+    def __init__(self, cluster_num, dimension, sparse_matrix):
         self.dimension = dimension
         self.cluster_num = cluster_num
-        self.cluster_centroids = numpy.random.rand(cluster_num, dimension)
-        self.cluster_centroids = self.cluster_centroids.astype('uint8')
+        row, _ = sparse_matrix.get_shape()
+        random_array = numpy.random.sample(range(0,row), cluster_num )
+        self.cluster_centroids = numpy.zeros(cluster_num, dimension)
+        for i in range(0, len(random_array)):
+            for j in range(0,dimension):
+                self.cluster_centroids[i,j] = sparse_matrix[random_array[i],j]
         self.label = {}
 
     def dis(self, x, y):
@@ -269,8 +273,6 @@ class Kmeans_Jaccard():
             array_row = numpy.zeros(col)
 
         #Construct centroid matrix
-        self.cluster_centroids = numpy.random.rand(self.cluster_num, self.dimension)
-        self.cluster_centroids = self.cluster_centroids.astype('uint8')
         for key in centroid:
             for j in range(0, col):
                 self.cluster_centroids[key,j] = sparse_matrix[centroid[key], j]
