@@ -13,7 +13,6 @@ from scipy.spatial import distance
 from scipy import sparse
 import matplotlib.pyplot as plt
 
-X_norm = numpy.matrix('1 2; 3 4')
 color_plate = {
     -1: '#000020',
     0: 'blue',
@@ -38,22 +37,6 @@ color_plate = {
     19: '#F0F020',
     20: '#802000'
 }
-
-
-def Drawer(label, filename):
-
-    for i in range(X_norm.shape[0]):
-        if label[i] > 20:
-            color = label[i] % 21
-        else:
-            color = label[i]
-        plt.plot(X_norm[i, 0],
-                 X_norm[i, 1],
-                 marker='o',
-                 color=color_plate[color])
-    plt.savefig(filename)
-    plt.clf()
-
 
 class HW2():
     def __init__(self, filename):
@@ -123,9 +106,9 @@ class HW2():
     def process_kmeasn_euclidean(self, clusters):
         kmeans = KMeans(n_clusters=clusters)
         kmeans.fit(self.sparse_matrix)
-        print("Kmeans overall distance:")
+        print("Kmeans overall distance for " + str(clusters) +" cluster")
         print(kmeans.inertia_)
-        return kmeans.inertia_
+        return kmeans.labels_
 
     def return_mat(self):
         return self.sparse_matrix
@@ -200,7 +183,7 @@ class HW2():
         print("DBSCAN overall distance:")
         print(overall_distance)
 
-        return overall_distance
+        return dbscan.labels_[i]
 
 
 class Kmeans_Jaccard():
@@ -291,6 +274,8 @@ class Kmeans_Jaccard():
 
         
     def process_kmeans(self, sparse_matrix):
+
+        row, col = sparse_matrix.get_shape()
         counter = 0
         while True:
             if True == self.cluster(sparse_matrix):
@@ -299,37 +284,113 @@ class Kmeans_Jaccard():
             counter += 1
             if counter >= 300:
                 break
-            print(counter)
+            
+            print("Kmeans_Jaccard: Run " + str(counter) )
+
+        array_row = numpy.zeros(col)
+        overall_distance = 0
+        for i in range(0, row):
+            for j in range(0, col):
+                if sparse_matrix[i, j] == 1:
+                    array_row[j] = 1
+            ja_distance = jaccard_score(self.cluster_centroids[self.label[i]],
+                                            array_row)
+            overall_distance = overall_distance + ja_distance
+            array_row = numpy.zeros(col)
+
+        print("Kmeans_Jaccard overall distance: ")
+        print(overall_distance)
+        return self.label
 
 
 if __name__ == "__main__":
-    pd.set_option("display.max_rows", None, "display.max_columns", None)
+    
+    #For console debug
     numpy.set_printoptions(threshold=sys.maxsize)
+    
     #Initialize
     hw = HW2("test.txt")
     hw.parse()
     hw.process_each_userId()
-    #X_tsne = manifold.TSNE(n_components=2).fit_transform(hw.return_df().values)
-    #x_min, x_max = X_tsne.min(0), X_tsne.max(0)
-    #X_norm = ( X_tsne - x_min ) / (x_max - x_min)
-    #for i in range(X_norm.shape[0]):
-    #    plt.plot(X_norm[i,0],X_norm[i,1],'ro')
-    #plt.show()
-
-    hw.process_kmeasn_euclidean(10)
-    hw.process_dbscan_jaccard()
-    #hw.transform_to_dataframe()
+    
+    #Init TSNE 
     X_tsne = manifold.TSNE(n_components=2).fit_transform(hw.return_mat())
     x_min, x_max = X_tsne.min(0), X_tsne.max(0)
     X_norm = (X_tsne - x_min) / (x_max - x_min)
     for i in range(X_norm.shape[0]):
-        plt.plot(X_norm[i, 0], X_norm[i, 1], marker='o', color='black')
-    plt.show()
-    #hw.process_kmeasn_euclidean()
-    #hw.process_dbscan_jaccard()
-    #kmeans_jaccard = Kmeans_Jaccard(10, hw.return_df().values.shape[1])
-    #kmeans_jaccard.process_kmeans(hw.return_df())
+        plt.plot(X_norm[i,0],X_norm[i,1],'ro')
+    plt.savefig("Original.png")
 
-    #for i in range(X_norm.shape[0]):
-    #    plt.plot(X_norm[i,0],X_norm[i,1],marker='o',color='black')
-    #plt.savefig("orig.png")
+    #Kmeans 10
+    label = hw.process_kmeasn_euclidean(10)
+    for i in range(X_norm.shape[0]):
+        if label[i] > 21:
+            color = label[i] % 21
+        else:
+            color = label[i]
+        plt.plot(X_norm[i, 0],
+                 X_norm[i, 1],
+                 marker='o',
+                 color=color_plate[color])
+    plt.savefig("Kmeans10.png")
+    plt.clf()
+
+    #DBSCAN
+    label = hw.process_dbscan_jaccard()
+    for i in range(X_norm.shape[0]):
+        if label[i] > 21:
+            color = label[i] % 21
+        else:
+            color = label[i]
+        plt.plot(X_norm[i, 0],
+                 X_norm[i, 1],
+                 marker='o',
+                 color=color_plate[color])
+    plt.savefig("DBSCAN.png")
+    plt.clf()
+
+    #Kmeans Jaccard
+    _, col =  hw.return_mat().getshape()
+    kmeans_jaccard = Kmeans_Jaccard(10, col)
+    label = kmeans_jaccard.process_kmeans(hw.return_mat())
+    for i in range(X_norm.shape[0]):
+        if label[i] > 21:
+            color = label[i] % 21
+        else:
+            color = label[i]
+        plt.plot(X_norm[i, 0],
+                 X_norm[i, 1],
+                 marker='o',
+                 color=color_plate[color])
+    plt.savefig("Kmeans_Jaccard.png")
+    plt.clf()
+
+    #Kmeans 5
+    label = hw.process_kmeasn_euclidean(5)
+    for i in range(X_norm.shape[0]):
+        if label[i] > 21:
+            color = label[i] % 21
+        else:
+            color = label[i]
+        plt.plot(X_norm[i, 0],
+                 X_norm[i, 1],
+                 marker='o',
+                 color=color_plate[color])
+    plt.savefig("Kmeans5.png")
+    plt.clf()
+
+    #Kmeans 20
+    label = hw.process_kmeasn_euclidean(20)
+    for i in range(X_norm.shape[0]):
+        if label[i] > 21:
+            color = label[i] % 21
+        else:
+            color = label[i]
+        plt.plot(X_norm[i, 0],
+                 X_norm[i, 1],
+                 marker='o',
+                 color=color_plate[color])
+    plt.savefig("Kmeans20.png")
+    plt.clf()
+
+
