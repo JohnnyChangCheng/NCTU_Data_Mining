@@ -200,6 +200,7 @@ class HW2():
 
 class Kmeans_Jaccard():
     def __init__(self, cluster_num, dimension, sparse_matrix):
+        self.fout = open("Kmeans_Jaccard.log",mode='w')
         self.dimension = dimension
         self.cluster_num = cluster_num
         row, _ = sparse_matrix.get_shape()
