@@ -98,6 +98,8 @@ class HW2():
         user_index = 0
         #Using Sparse matrix to store the data
         for user in self.userId_list:
+            if user_index % 100 == 0:
+                print("Still Need to process " + str(len(self.userId_list) - user_index ) )
             for product in self.user_product[user]:
                 index.append(user_index)
                 column.append(self.productId_list.index(product))
@@ -220,7 +222,7 @@ class Kmeans_Jaccard():
                     array_row[j] = 1
             for k in range(0,len(self.cluster_centroids)):
                 jaccard = self.dis(self.cluster_centroids[k], array_row)
-                if jaccard < ja_distance:
+                if jaccard > ja_distance:
                     ja_distance = jaccard
                     nearest_cluster = k
             label_[i] = nearest_cluster
