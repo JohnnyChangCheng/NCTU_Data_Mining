@@ -369,7 +369,7 @@ if __name__ == "__main__":
 
     #Kmeans Jaccard
     _, col =  hw.return_mat().get_shape()
-    kmeans_jaccard = Kmeans_Jaccard(10, col)
+    kmeans_jaccard = Kmeans_Jaccard(10, col, hw.return_mat() )
     label = kmeans_jaccard.process_kmeans(hw.return_mat())
     for i in range(X_norm.shape[0]):
         if label[i] > 20:
