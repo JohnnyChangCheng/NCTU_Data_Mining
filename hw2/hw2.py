@@ -100,7 +100,7 @@ class HW2():
         #Using Sparse matrix to store the data
         for user in self.userId_list:
             if user_index % 100 == 0:
-                print("Still Need to process " + str(len(self.userId_list) - user_index ) )
+                 self.fout.write("Still Need to process " + str(len(self.userId_list) - user_index ) )
                 self.fout.write("\n")
             for product in self.user_product[user]:
                 index.append(user_index)
@@ -116,7 +116,7 @@ class HW2():
         kmeans.fit(self.sparse_matrix)
         self.fout.write("Kmeans overall distance for " + str(clusters) +" cluster")
         self.fout.write("\n")
-        self.fout.write(kmeans.inertia_)
+        self.fout.write(str(kmeans.inertia_))
         self.fout.write("\n")
         return kmeans.labels_
 
@@ -192,7 +192,7 @@ class HW2():
 
         self.fout.write("DBSCAN overall distance:")
         self.fout.write("\n")
-        self.fout.write(overall_distance)
+        self.fout.write(str(overall_distance))
         self.fout.write("\n")
 
         return dbscan.labels_
@@ -314,7 +314,7 @@ class Kmeans_Jaccard():
             array_row = numpy.zeros(col)
 
         self.fout.write("Kmeans_Jaccard overall distance: \n")
-        self.fout.write(overall_distance)
+        self.fout.write(str(overall_distance))
         self.fout.write("\n")
         return self.label
 
