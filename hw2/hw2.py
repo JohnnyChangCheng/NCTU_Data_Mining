@@ -215,7 +215,7 @@ class Kmeans_Jaccard():
         #Group each user to nearest centroid
         array_row = numpy.zeros(col)
         for i in range(0, row):
-            ja_distance = 2  #maximum value is 1
+            ja_distance = 0  #maximum value is 1
             nearest_cluster = -1
             for j in range(0, col):
                 if sparse_matrix[i, j] == 1:
