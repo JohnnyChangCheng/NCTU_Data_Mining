@@ -205,7 +205,7 @@ class Kmeans_Jaccard():
         self.cluster_num = cluster_num
         row, _ = sparse_matrix.get_shape()
         random_array = numpy.random.choice(range(0,row), cluster_num, replace=False )
-        self.cluster_centroids = numpy.zeros(cluster_num, dimension)
+        self.cluster_centroids = numpy.zeros((cluster_num, dimension))
         for i in range(0, len(random_array)):
             for j in range(0,dimension):
                 self.cluster_centroids[i,j] = sparse_matrix[random_array[i],j]
