@@ -40,6 +40,7 @@ color_plate = {
 
 class HW2():
     def __init__(self, filename):
+        self.fout = open("hw2.log", mode='w')
         self.fptr = open(filename, mode='r')
         self.userId_attr = "review/userId:"
         self.productId_attr = "product/productId:"
@@ -86,10 +87,10 @@ class HW2():
                     product_list = set()
                     product_list.add(productId)
                     self.user_product[userId] = product_list
-        print(self.productId_set)
         self.userId_list = sorted(self.userId_set)
         self.productId_list = sorted(self.productId_set)
-        print("Parse original file finished")
+        self.fout.write("Parse original file finished")
+        self.fout.write("\n")
 
     def process_each_userId(self):
         index = []
@@ -100,19 +101,23 @@ class HW2():
         for user in self.userId_list:
             if user_index % 100 == 0:
                 print("Still Need to process " + str(len(self.userId_list) - user_index ) )
+                self.fout.write("\n")
             for product in self.user_product[user]:
                 index.append(user_index)
                 column.append(self.productId_list.index(product))
                 value.append(1)
             user_index += 1
         self.sparse_matrix = sparse.csc_matrix((value, (index, column)),shape=(len(self.userId_list),len(self.productId_list)))
-        print("Sparse matrix constructed finished")
+        self.fout.write("Sparse matrix constructed finished")
+        self.fout.write("\n")
 
     def process_kmeasn_euclidean(self, clusters):
         kmeans = KMeans(n_clusters=clusters)
         kmeans.fit(self.sparse_matrix)
-        print("Kmeans overall distance for " + str(clusters) +" cluster")
-        print(kmeans.inertia_)
+        self.fout.write("Kmeans overall distance for " + str(clusters) +" cluster")
+        self.fout.write("\n")
+        self.fout.write(kmeans.inertia_)
+        self.fout.write("\n")
         return kmeans.labels_
 
     def return_mat(self):
@@ -185,8 +190,10 @@ class HW2():
                 overall_distance = overall_distance + ja_distance
             array_row = numpy.zeros(col)
 
-        print("DBSCAN overall distance:")
-        print(overall_distance)
+        self.fout.write("DBSCAN overall distance:")
+        self.fout.write("\n")
+        self.fout.write(overall_distance)
+        self.fout.write("\n")
 
         return dbscan.labels_
 
@@ -292,7 +299,7 @@ class Kmeans_Jaccard():
             if counter >= 300:
                 break
             
-            print("Kmeans_Jaccard: Run " + str(counter) )
+            self.fout.write("Kmeans_Jaccard: Run " + str(counter) )
 
         array_row = numpy.zeros(col)
         overall_distance = 0
@@ -305,8 +312,9 @@ class Kmeans_Jaccard():
             overall_distance = overall_distance + ja_distance
             array_row = numpy.zeros(col)
 
-        print("Kmeans_Jaccard overall distance: ")
-        print(overall_distance)
+        self.fout.write("Kmeans_Jaccard overall distance: \n")
+        self.fout.write(overall_distance)
+        self.fout.write("\n")
         return self.label
 
 
