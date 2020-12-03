@@ -100,7 +100,7 @@ class HW2():
         #Using Sparse matrix to store the data
         for user in self.userId_list:
             if user_index % 100 == 0:
-                 self.fout.write("Still Need to process " + str(len(self.userId_list) - user_index ) )
+                self.fout.write("Still Need to process " + str(len(self.userId_list) - user_index ) )
                 self.fout.write("\n")
             for product in self.user_product[user]:
                 index.append(user_index)
