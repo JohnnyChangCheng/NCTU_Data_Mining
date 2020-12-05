@@ -99,7 +99,7 @@ class HW2():
         user_index = 0
         #Using Sparse matrix to store the data
         for user in self.userId_list:
-            if user_index % 100 == 0:
+            if user_index % 10000 == 0:
                 self.fout.write("Still Need to process " + str(len(self.userId_list) - user_index ) )
                 self.fout.write("\n")
             for product in self.user_product[user]:
@@ -108,6 +108,7 @@ class HW2():
                 value.append(1)
             user_index += 1
         self.sparse_matrix = sparse.csc_matrix((value, (index, column)),shape=(len(self.userId_list),len(self.productId_list)))
+        sparse.save_npz('sparse_matrix.npz', self.sparse_matrix)
         self.fout.write("Sparse matrix constructed finished")
         self.fout.write("\n")
 
@@ -325,7 +326,7 @@ if __name__ == "__main__":
     numpy.set_printoptions(threshold=sys.maxsize)
     
     #Initialize
-    hw = HW2("all.txt")
+    hw = HW2("Music.txt")
     hw.parser()
     hw.process_each_userId()
     
@@ -367,22 +368,6 @@ if __name__ == "__main__":
     plt.savefig("DBSCAN.png")
     plt.clf()
 
-    #Kmeans Jaccard
-    _, col =  hw.return_mat().get_shape()
-    kmeans_jaccard = Kmeans_Jaccard(10, col, hw.return_mat() )
-    label = kmeans_jaccard.process_kmeans(hw.return_mat())
-    for i in range(X_norm.shape[0]):
-        if label[i] > 20:
-            color = label[i] % 21
-        else:
-            color = label[i]
-        plt.plot(X_norm[i, 0],
-                 X_norm[i, 1],
-                 marker='o',
-                 color=color_plate[color])
-    plt.savefig("Kmeans_Jaccard.png")
-    plt.clf()
-
     #Kmeans 5
     label = hw.process_kmeasn_euclidean(5)
     for i in range(X_norm.shape[0]):
@@ -411,4 +396,19 @@ if __name__ == "__main__":
     plt.savefig("Kmeans20.png")
     plt.clf()
 
+    #Kmeans Jaccard
+    _, col =  hw.return_mat().get_shape()
+    kmeans_jaccard = Kmeans_Jaccard(10, col, hw.return_mat() )
+    label = kmeans_jaccard.process_kmeans(hw.return_mat())
+    for i in range(X_norm.shape[0]):
+        if label[i] > 20:
+            color = label[i] % 21
+        else:
+            color = label[i]
+        plt.plot(X_norm[i, 0],
+                 X_norm[i, 1],
+                 marker='o',
+                 color=color_plate[color])
+    plt.savefig("Kmeans_Jaccard.png")
+    plt.clf()
 
