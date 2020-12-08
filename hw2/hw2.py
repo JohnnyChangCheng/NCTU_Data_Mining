@@ -11,6 +11,7 @@ from sklearn.utils.multiclass import type_of_target
 from sklearn import manifold
 from scipy.spatial import distance
 from scipy import sparse
+from sklearn.cluster import MiniBatchKMeans
 import matplotlib.pyplot as plt
 
 color_plate = {
@@ -54,6 +55,8 @@ class HW2():
     def __del__(self):
         self.fptr.close()
 
+    def load(self):
+    	self.sparse_matrix = sparse.load_npz('sparse_matrix.npz')
     def parser(self):
         #Process raw data
         while True:
@@ -112,13 +115,15 @@ class HW2():
         self.fout.write("Sparse matrix constructed finished")
         self.fout.write("\n")
 
+
     def process_kmeasn_euclidean(self, clusters):
-        kmeans = KMeans(n_clusters=clusters)
+        kmeans = MiniBatchKMeans(n_clusters=clusters,batch_size=50)
         kmeans.fit(self.sparse_matrix)
         self.fout.write("Kmeans overall distance for " + str(clusters) +" cluster")
         self.fout.write("\n")
         self.fout.write(str(kmeans.inertia_))
         self.fout.write("\n")
+        self.fout.flush()
         return kmeans.labels_
 
     def return_mat(self):
@@ -128,7 +133,7 @@ class HW2():
         self.df = pd.read_pickle(filename)
 
     def process_dbscan_jaccard(self):
-        dbscan = DBSCAN()
+        dbscan = DBSCAN(algorithm='ball_tree', metric='haversine')
         dbscan.fit(self.sparse_matrix)
 
         #Get the shape of Sparse matrix
@@ -195,7 +200,7 @@ class HW2():
         self.fout.write("\n")
         self.fout.write(str(overall_distance))
         self.fout.write("\n")
-
+        self.fout.flush()
         return dbscan.labels_
 
 
@@ -326,9 +331,10 @@ if __name__ == "__main__":
     numpy.set_printoptions(threshold=sys.maxsize)
     
     #Initialize
-    hw = HW2("Music.txt")
+    hw = HW2("all.txt")
     hw.parser()
     hw.process_each_userId()
+    #hw.load()
     
     #Init TSNE 
     X_tsne = manifold.TSNE(n_components=2).fit_transform(hw.return_mat())
@@ -352,20 +358,6 @@ if __name__ == "__main__":
                  marker='o',
                  color=color_plate[color])
     plt.savefig("Kmeans10.png")
-    plt.clf()
-
-    #DBSCAN
-    label = hw.process_dbscan_jaccard()
-    for i in range(X_norm.shape[0]):
-        if label[i] > 20:
-            color = label[i] % 21
-        else:
-            color = label[i]
-        plt.plot(X_norm[i, 0],
-                 X_norm[i, 1],
-                 marker='o',
-                 color=color_plate[color])
-    plt.savefig("DBSCAN.png")
     plt.clf()
 
     #Kmeans 5
@@ -395,6 +387,21 @@ if __name__ == "__main__":
                  color=color_plate[color])
     plt.savefig("Kmeans20.png")
     plt.clf()
+
+    #DBSCAN
+    label = hw.process_dbscan_jaccard()
+    for i in range(X_norm.shape[0]):
+        if label[i] > 20:
+            color = label[i] % 21
+        else:
+            color = label[i]
+        plt.plot(X_norm[i, 0],
+                 X_norm[i, 1],
+                 marker='o',
+                 color=color_plate[color])
+    plt.savefig("DBSCAN.png")
+    plt.clf()
+    
 
     #Kmeans Jaccard
     _, col =  hw.return_mat().get_shape()
